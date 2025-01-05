@@ -111,6 +111,15 @@ function App() {
           setModel={setModel}
         />
       }
+      case Model.ModelType.AddUDProfileToRightWall: {
+        const [result, next] = model.fields
+        return <RoomSideStep
+          side="rightWall"
+          result={result}
+          next={next}
+          setModel={setModel}
+        />
+      }
       case Model.ModelType.End: {
         const state = model.fields
         return (

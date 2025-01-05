@@ -130,6 +130,17 @@ describe("Model", () => {
                 length: 300
               }
             ]
+          },
+          rightWall: {
+            length: 600,
+            uds: [
+              {
+                length: 300
+              },
+              {
+                length: 300
+              }
+            ]
           }
         },
         constantMaterials: {
@@ -138,7 +149,7 @@ describe("Model", () => {
           }
         },
         usedMaterial: {
-          ud: 8
+          ud: 10
         }
       })
   })

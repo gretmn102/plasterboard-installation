@@ -30,7 +30,7 @@ export type Noun = {
   adpositional: string
 }
 
-export type RoomSideName = "floor" | "leftWall" | "ceiling"
+export type RoomSideName = "floor" | "leftWall" | "ceiling" | "rightWall"
 export namespace RoomSideName {
   export function toNoun(side: RoomSideName): Noun {
     switch (side) {
@@ -51,6 +51,12 @@ export namespace RoomSideName {
           nominative: "левая стена",
           accusative: "левую стену",
           adpositional: "левой стене",
+        }
+      case "rightWall":
+        return {
+          nominative: "правая стена",
+          accusative: "правую стену",
+          adpositional: "правой стене",
         }
     }
   }
@@ -136,8 +142,9 @@ export type State = {
   room: {
     size: Size
     floor: RoomSide
-    leftWall: RoomSide
     ceiling: RoomSide
+    leftWall: RoomSide
+    rightWall: RoomSide
   }
   constantMaterials: ConstantMaterials
   usedMaterial: {
@@ -154,8 +161,9 @@ export namespace State {
       room: {
         size: roomSize,
         floor: RoomSide.create(roomSize.width),
-        leftWall: RoomSide.create(roomSize.height),
         ceiling: RoomSide.create(roomSize.width),
+        leftWall: RoomSide.create(roomSize.height),
+        rightWall: RoomSide.create(roomSize.height),
       },
       constantMaterials,
       usedMaterial: {
@@ -168,8 +176,9 @@ export namespace State {
 export enum ModelType {
   "Start",
   "AddUDProfileToFloor",
-  "AddUDProfileToLeftWall",
   "AddUDProfileToCeiling",
+  "AddUDProfileToLeftWall",
+  "AddUDProfileToRightWall",
   "End"
 }
 
@@ -177,6 +186,7 @@ export type Model =
   | UnionCase<ModelType.Start, () => Model>
   | UnionCase<ModelType.AddUDProfileToFloor, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.AddUDProfileToLeftWall, [RoomSide.AddUDProfileResult, () => Model]>
+  | UnionCase<ModelType.AddUDProfileToRightWall, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.AddUDProfileToCeiling, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.End, State>
 
@@ -207,6 +217,19 @@ export namespace Model {
       [RoomSide.AddUDProfileResult, () => Model]
     >(
       ModelType.AddUDProfileToLeftWall,
+      [result, next],
+    )
+  }
+
+  export function createAddUDProfileToRightWall(
+    result: RoomSide.AddUDProfileResult,
+    next: () => Model
+  ): Model {
+    return UnionCase.mkUnionCase<
+      ModelType.AddUDProfileToRightWall,
+      [RoomSide.AddUDProfileResult, () => Model]
+    >(
+      ModelType.AddUDProfileToRightWall,
       [result, next],
     )
   }
@@ -253,6 +276,8 @@ export namespace Model {
           return createAddUDProfileToFloor
         case "leftWall":
           return createAddUDProfileToLeftWall
+        case "rightWall":
+          return createAddUDProfileToRightWall
         case "ceiling":
           return createAddUDProfileToCeiling
       }
@@ -276,7 +301,9 @@ export namespace Model {
     return createStart(() => (
       fillRoomSideByUds(initState, "floor", state => (
         fillRoomSideByUds(state, "leftWall", state => (
-          fillRoomSideByUds(state, "ceiling", createEnd)
+          fillRoomSideByUds(state, "ceiling", state => (
+            fillRoomSideByUds(state, "rightWall", createEnd)
+          ))
         ))
       ))
     ))
@@ -287,8 +314,9 @@ export namespace Model {
       case ModelType.Start:
         return simulateToEnd(model.fields())
       case ModelType.AddUDProfileToFloor:
+      case ModelType.AddUDProfileToCeiling:
       case ModelType.AddUDProfileToLeftWall:
-      case ModelType.AddUDProfileToCeiling: {
+      case ModelType.AddUDProfileToRightWall: {
         const [_, next] = model.fields
         return simulateToEnd(next())
       }
