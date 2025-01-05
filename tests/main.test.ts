@@ -1,26 +1,25 @@
 import { describe, it, expect } from "vitest"
-import { Choice, Option } from "@fering-org/functional-helper"
-import update from "immutability-helper"
+import { Option } from "@fering-org/functional-helper"
 
-import { Floor, UD } from "../src/model"
+import { RoomSide, UD } from "../src/model"
 
-describe("Floor", () => {
+describe("RoomSide", () => {
   it("add to uds", () => {
-    const initFloor = Floor.create(5)
+    const initRoomSide = RoomSide.create(5)
     const ud = UD.create(2)
-    const floor2 = Floor.addUDProfile(initFloor, ud)
+    const floor2 = RoomSide.addUDProfile(initRoomSide, ud)
     expect(floor2)
-      .toStrictEqual<Floor.AddUDProfileResult>({
-        filled: Floor.Filled.createNotFilledYet(),
+      .toStrictEqual<RoomSide.AddUDProfileResult>({
+        filled: RoomSide.Filled.createNotFilledYet(),
         updatedState: {
           length: 5,
           uds: [ ud ]
         }
       })
-    const floor3 = Floor.addUDProfile(floor2.updatedState, ud)
+    const floor3 = RoomSide.addUDProfile(floor2.updatedState, ud)
     expect(floor3)
-      .toStrictEqual<Floor.AddUDProfileResult>({
-        filled: Floor.Filled.createNotFilledYet(),
+      .toStrictEqual<RoomSide.AddUDProfileResult>({
+        filled: RoomSide.Filled.createNotFilledYet(),
         updatedState: {
           length: 5,
           uds: [ ud, ud ]
@@ -28,49 +27,49 @@ describe("Floor", () => {
       })
   })
   it("filled without rest", () => {
-    const initFloor = Floor.create(4)
+    const initRoomSide = RoomSide.create(4)
     const ud = UD.create(2)
-    const result = Floor.addUDProfile(initFloor, ud)
+    const result = RoomSide.addUDProfile(initRoomSide, ud)
     expect(result)
-      .toStrictEqual<Floor.AddUDProfileResult>({
-        filled: Floor.Filled.createNotFilledYet(),
+      .toStrictEqual<RoomSide.AddUDProfileResult>({
+        filled: RoomSide.Filled.createNotFilledYet(),
         updatedState: {
-          length: initFloor.length,
+          length: initRoomSide.length,
           uds: [ ud ]
         }
       })
-    const result2 = Floor.addUDProfile(result.updatedState, ud)
+    const result2 = RoomSide.addUDProfile(result.updatedState, ud)
     expect(result2)
-      .toStrictEqual<Floor.AddUDProfileResult>({
-        filled: Floor.Filled.createFilled(Option.mkNone()),
+      .toStrictEqual<RoomSide.AddUDProfileResult>({
+        filled: RoomSide.Filled.createFilled(Option.mkNone()),
         updatedState: {
-          length: initFloor.length,
+          length: initRoomSide.length,
           uds: [ ud, ud ]
         }
       })
   })
   it("filled with rest", () => {
-    const initFloor = Floor.create(5)
+    const initRoomSide = RoomSide.create(5)
     const ud = UD.create(3)
-    const result = Floor.addUDProfile(initFloor, ud)
+    const result = RoomSide.addUDProfile(initRoomSide, ud)
     expect(result)
-      .toStrictEqual<Floor.AddUDProfileResult>({
-        filled: Floor.Filled.createNotFilledYet(),
+      .toStrictEqual<RoomSide.AddUDProfileResult>({
+        filled: RoomSide.Filled.createNotFilledYet(),
         updatedState: {
-          length: initFloor.length,
+          length: initRoomSide.length,
           uds: [ ud ]
         }
       })
-    const result2 = Floor.addUDProfile(result.updatedState, ud)
+    const result2 = RoomSide.addUDProfile(result.updatedState, ud)
     const installedUd = UD.create(2)
     expect(result2)
-      .toStrictEqual<Floor.AddUDProfileResult>({
-        filled: Floor.Filled.createFilled(Option.mkSome({
+      .toStrictEqual<RoomSide.AddUDProfileResult>({
+        filled: RoomSide.Filled.createFilled(Option.mkSome({
           installedUd,
           restUd: UD.create(1),
         })),
         updatedState: {
-          length: initFloor.length,
+          length: initRoomSide.length,
           uds: [ ud, installedUd ]
         }
       })

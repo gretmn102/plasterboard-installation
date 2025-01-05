@@ -21,12 +21,12 @@ export type Material =
   | UnionCase<MaterialType.CD, { length: number }>
   | UnionCase<MaterialType.Plasterboard, { width: number, height: number }>
 
-export type Floor = {
+export type RoomSide = {
   uds: UD[]
   length: number
 }
-export namespace Floor {
-  export function create(length: number): Floor {
+export namespace RoomSide {
+  export function create(length: number): RoomSide {
     return {
       length,
       uds: [],
@@ -49,11 +49,11 @@ export namespace Floor {
   }
 
   export type AddUDProfileResult = {
-    updatedState: Floor
+    updatedState: RoomSide
     filled: Filled
   }
 
-  export function addUDProfile(floor: Floor, ud: UD): AddUDProfileResult {
+  export function addUDProfile(floor: RoomSide, ud: UD): AddUDProfileResult {
     const udsLength = ArrayExt.fold(
       floor.uds,
       0,
@@ -100,8 +100,8 @@ export type ConstantMaterials = {
 export type State = {
   room: {
     size: Size
-    floor: Floor
-    leftWall: Floor
+    floor: RoomSide
+    leftWall: RoomSide
   }
   constantMaterials: ConstantMaterials
   usedMaterial: {
@@ -117,8 +117,8 @@ export namespace State {
     return {
       room: {
         size: roomSize,
-        floor: Floor.create(roomSize.width),
-        leftWall: Floor.create(roomSize.height),
+        floor: RoomSide.create(roomSize.width),
+        leftWall: RoomSide.create(roomSize.height),
       },
       constantMaterials,
       usedMaterial: {
@@ -137,8 +137,8 @@ export enum ModelType {
 
 export type Model =
   | UnionCase<ModelType.Start, () => Model>
-  | UnionCase<ModelType.AddUDProfileToFloor, [Floor.AddUDProfileResult, () => Model]>
-  | UnionCase<ModelType.AddUDProfileToLeftWall, [Floor.AddUDProfileResult, () => Model]>
+  | UnionCase<ModelType.AddUDProfileToFloor, [RoomSide.AddUDProfileResult, () => Model]>
+  | UnionCase<ModelType.AddUDProfileToLeftWall, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.End, State>
 
 export namespace Model {
@@ -147,12 +147,12 @@ export namespace Model {
   }
 
   export function createAddUDProfileToFloor(
-    result: Floor.AddUDProfileResult,
+    result: RoomSide.AddUDProfileResult,
     next: () => Model
   ): Model {
     return UnionCase.mkUnionCase<
       ModelType.AddUDProfileToFloor,
-      [Floor.AddUDProfileResult, () => Model]
+      [RoomSide.AddUDProfileResult, () => Model]
     >(
       ModelType.AddUDProfileToFloor,
       [result, next],
@@ -160,12 +160,12 @@ export namespace Model {
   }
 
   export function createAddUDProfileToLeftWall(
-    result: Floor.AddUDProfileResult,
+    result: RoomSide.AddUDProfileResult,
     next: () => Model
   ): Model {
     return UnionCase.mkUnionCase<
       ModelType.AddUDProfileToLeftWall,
-      [Floor.AddUDProfileResult, () => Model]
+      [RoomSide.AddUDProfileResult, () => Model]
     >(
       ModelType.AddUDProfileToLeftWall,
       [result, next],
@@ -177,7 +177,7 @@ export namespace Model {
   }
 
   export function fillFloorByUds(state: State): Model {
-    const result = Floor.addUDProfile(
+    const result = RoomSide.addUDProfile(
       state.room.floor,
       state.constantMaterials.ud
     )
@@ -207,7 +207,7 @@ export namespace Model {
   }
 
   export function fillLeftWallByUds(state: State): Model {
-    const result = Floor.addUDProfile(
+    const result = RoomSide.addUDProfile(
       state.room.leftWall,
       state.constantMaterials.ud
     )
