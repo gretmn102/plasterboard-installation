@@ -35,13 +35,15 @@ export namespace Floor {
 
   export type Filled =
     | UnionCase<"NotFilledYet">
-    | UnionCase<"Filled", Option<UD>>
+    | UnionCase<"Filled", Option<{ installedUd: UD, restUd: UD }>>
   export namespace Filled {
     export function createNotFilledYet(): Filled {
       return UnionCase.mkEmptyUnionCase("NotFilledYet")
     }
 
-    export function createFilled(rest: Option<UD>): Filled {
+    export function createFilled(
+      rest: Option<{ installedUd: UD, restUd: UD }>
+    ): Filled {
       return UnionCase.mkUnionCase("Filled", rest)
     }
   }
@@ -60,12 +62,16 @@ export namespace Floor {
     const remainingLength = floor.length - (udsLength + ud.length)
     if (remainingLength < 0) {
       const diff = Math.abs(remainingLength)
+      const installedUd = UD.create(ud.length - diff)
       return {
         updatedState: update(floor, {
-          uds: { $push: [ UD.create(ud.length - diff) ] }
+          uds: { $push: [ installedUd ] }
         }),
         filled: Filled.createFilled(
-          Option.mkSome(UD.create(diff))
+          Option.mkSome({
+            installedUd: installedUd,
+            restUd: UD.create(diff),
+          })
         ),
       }
     } else if (remainingLength === 0) {

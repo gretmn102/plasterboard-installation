@@ -50,8 +50,8 @@ describe("Floor", () => {
       })
   })
   it("filled with rest", () => {
-    const initFloor = Floor.create(3)
-    const ud = UD.create(2)
+    const initFloor = Floor.create(5)
+    const ud = UD.create(3)
     const result = Floor.addUDProfile(initFloor, ud)
     expect(result)
       .toStrictEqual<Floor.AddUDProfileResult>({
@@ -62,14 +62,16 @@ describe("Floor", () => {
         }
       })
     const result2 = Floor.addUDProfile(result.updatedState, ud)
+    const installedUd = UD.create(2)
     expect(result2)
       .toStrictEqual<Floor.AddUDProfileResult>({
-        filled: Floor.Filled.createFilled(Option.mkSome(
-          UD.create(1)
-        )),
+        filled: Floor.Filled.createFilled(Option.mkSome({
+          installedUd,
+          restUd: UD.create(1),
+        })),
         updatedState: {
           length: initFloor.length,
-          uds: [ ud, UD.create(1) ]
+          uds: [ ud, installedUd ]
         }
       })
   })

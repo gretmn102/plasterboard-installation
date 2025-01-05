@@ -1,14 +1,15 @@
 import React, { useState } from "react" // leave it in, otherwise it throws an error
 import { createRoot } from "react-dom/client"
+import { Option } from "@fering-org/functional-helper";
 
 import "./styles.css"
 import { concat } from "./utils"
 import * as Model from "./model"
 
 const initState = Model.State.create(
-  { width: 800, height: 600 },
+  { width: 700, height: 600 },
   {
-    ud: Model.UD.create(200)
+    ud: Model.UD.create(300)
   },
 )
 
@@ -20,33 +21,62 @@ function App() {
       case Model.ModelType.Start:
         return (
           <>
-            <div>Start</div>
+            <div>Начинаю укладывать на пол UD профиля.</div>
             <button onClick={() => {
               const newModel = model.fields()
               setModel(newModel)
             }}>
-              Next
+              Приступить
             </button>
           </>
         )
       case Model.ModelType.AddUDProfileToFloor: {
         const [result, next] = model.fields
+        const stepDescription = (() => {
+          switch (result.filled.case) {
+            case "NotFilledYet":
+              return (
+                <>
+                  <div>Устанавливаю UD профиль на пол.</div>
+                  <div>Уставлено {result.updatedState.uds.length} UD профилей на полу.</div>
+                </>
+              )
+            case "Filled":
+              return Option.reduce(
+                result.filled.fields,
+                restUd => {
+                  return (
+                    <>
+                      <div>Отмеряю на последнем UD профиле {restUd.installedUd.length} длину, отрезаю и устанавливаю его. Остаток UD профиля длиной в {restUd.restUd.length} отбрасываю</div>
+                      <div>Уставлено {result.updatedState.uds.length} UD профилей на полу.</div>
+                    </>
+                  )
+                },
+                () => {
+                  return (
+                    <>
+                      <div>Устанавливаю последний UD профиль на пол.</div>
+                      <div>Уставлено {result.updatedState.uds.length} UD профилей на полу.</div>
+                    </>
+                  )
+                }
+              )
+          }
+        })()
         return (
           <>
-            <div>{JSON.stringify(result)}</div>
+            {stepDescription}
             <button onClick={() => {
               setModel(next())
             }}>
-              Next
+              Продолжить
             </button>
           </>
         )
       }
       case Model.ModelType.End: {
         return (
-          <>
-            <div>End</div>
-          </>
+          <div>Конец</div>
         )
       }
     }
@@ -55,11 +85,11 @@ function App() {
   return (
     <>
       <div className={concat([
-        "h-screen",
-        "flex",
-        "justify-center",
-        "items-center",
-        "text-7xl",
+        // "h-screen",
+        // "flex",
+        // "justify-center",
+        // "items-center",
+        // "text-7xl",
       ])}>{content}</div>
     </>
   )
