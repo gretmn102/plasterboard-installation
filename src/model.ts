@@ -103,6 +103,9 @@ export type State = {
     floor: Floor
   }
   constantMaterials: ConstantMaterials
+  usedMaterial: {
+    ud: number
+  },
 }
 
 export namespace State {
@@ -115,7 +118,10 @@ export namespace State {
         size: roomSize,
         floor: Floor.create(roomSize.width),
       },
-      constantMaterials
+      constantMaterials,
+      usedMaterial: {
+        ud: 0
+      },
     }
   }
 }
@@ -129,7 +135,7 @@ export enum ModelType {
 export type Model =
   | UnionCase<ModelType.Start, () => Model>
   | UnionCase<ModelType.AddUDProfileToFloor, [Floor.AddUDProfileResult, () => Model]>
-  | UnionCase<ModelType.End>
+  | UnionCase<ModelType.End, State>
 
 export namespace Model {
   export function createStart(next: () => Model): Model {
@@ -149,8 +155,8 @@ export namespace Model {
     )
   }
 
-  export function createEnd(): Model {
-    return UnionCase.mkEmptyUnionCase(ModelType.End)
+  export function createEnd(state: State): Model {
+    return UnionCase.mkUnionCase(ModelType.End, state)
   }
 
   export function fillFloorByUds(state: State): Model {
@@ -158,18 +164,21 @@ export namespace Model {
       state.room.floor,
       state.constantMaterials.ud
     )
+    const updatedState = update(state, {
+      room: {
+        floor: {
+          $set: result.updatedState
+        }
+      },
+      usedMaterial: {
+        ud: { $apply: current => current + 1 }
+      },
+    })
     return createAddUDProfileToFloor(
       result,
       () => {
         switch (result.filled.case) {
           case "NotFilledYet": {
-            const updatedState: State = update(state, {
-              room: {
-                floor: {
-                  $set: result.updatedState
-                }
-              }
-            })
             return fillFloorByUds(updatedState)
           }
           case "Filled": {
@@ -177,10 +186,10 @@ export namespace Model {
             return Option.reduce(
               filled,
               restUd => {
-                return createEnd()
+                return createEnd(updatedState)
               },
               () => {
-                return createEnd()
+                return createEnd(updatedState)
               },
             )
           }

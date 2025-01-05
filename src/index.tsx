@@ -75,8 +75,12 @@ function App() {
         )
       }
       case Model.ModelType.End: {
+        const state = model.fields
         return (
-          <div>Конец</div>
+          <>
+            <pre>{JSON.stringify(state, undefined, 2)}</pre>
+            <div>Конец</div>
+          </>
         )
       }
     }
