@@ -1,6 +1,5 @@
 import React, { useState } from "react" // leave it in, otherwise it throws an error
 import { createRoot } from "react-dom/client"
-import update from 'immutability-helper'
 
 import "./styles.css"
 import { concat } from "./utils"
@@ -16,7 +15,7 @@ const initState = Model.State.create(
 function App() {
   const [model, setModel] = useState(Model.Model.start(initState))
 
-  const x = (() => {
+  const content = (() => {
     switch (model.case) {
       case Model.ModelType.Start:
         return (
@@ -61,7 +60,7 @@ function App() {
         "justify-center",
         "items-center",
         "text-7xl",
-      ])}>{x}</div>
+      ])}>{content}</div>
     </>
   )
 }

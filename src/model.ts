@@ -117,14 +117,12 @@ export namespace State {
 export enum ModelType {
   "Start",
   "AddUDProfileToFloor",
-  // "FinishAddUDProfileToFloor",
   "End"
 }
 
 export type Model =
   | UnionCase<ModelType.Start, () => Model>
   | UnionCase<ModelType.AddUDProfileToFloor, [Floor.AddUDProfileResult, () => Model]>
-  // | UnionCase<ModelType.FinishAddUDProfileToFloor, Floor.AddUDProfileResult["filled"]>
   | UnionCase<ModelType.End>
 
 export namespace Model {
