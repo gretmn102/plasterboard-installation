@@ -92,8 +92,8 @@ export type ConstantMaterials = {
 }
 
 export type State = {
-  roomSize: Size
-  roomState: {
+  room: {
+    size: Size
     floor: Floor
   }
   constantMaterials: ConstantMaterials
@@ -105,9 +105,9 @@ export namespace State {
     constantMaterials: ConstantMaterials,
   ): State {
     return {
-      roomSize,
-      roomState: {
-        floor: Floor.create(roomSize.width)
+      room: {
+        size: roomSize,
+        floor: Floor.create(roomSize.width),
       },
       constantMaterials
     }
@@ -149,7 +149,7 @@ export namespace Model {
 
   export function fillFloorByUds(state: State): Model {
     const result = Floor.addUDProfile(
-      state.roomState.floor,
+      state.room.floor,
       state.constantMaterials.ud
     )
     return createAddUDProfileToFloor(
@@ -158,7 +158,7 @@ export namespace Model {
         switch (result.filled.case) {
           case "NotFilledYet": {
             const updatedState: State = update(state, {
-              roomState: {
+              room: {
                 floor: {
                   $set: result.updatedState
                 }
