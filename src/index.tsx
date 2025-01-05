@@ -1,10 +1,11 @@
 import React, { useState } from "react" // leave it in, otherwise it throws an error
 import { createRoot } from "react-dom/client"
-import { Option } from "@fering-org/functional-helper";
+import { Option } from "@fering-org/functional-helper"
 
 import "./styles.css"
 import { concat } from "./utils"
 import * as Model from "./model"
+import { RoomSide, RoomSideName } from "./model"
 
 const initState = Model.State.create(
   { width: 700, height: 600 },
@@ -12,6 +13,59 @@ const initState = Model.State.create(
     ud: Model.UD.create(300)
   },
 )
+
+
+function RoomSideStep(
+  props: {
+    side: RoomSideName,
+    result: RoomSide.AddUDProfileResult,
+    next: () => Model.Model,
+    setModel: (model: Model.Model) => void,
+  }
+) {
+  const sideNoun = RoomSideName.toNoun(props.side)
+  const stepDescription = (() => {
+    switch (props.result.filled.case) {
+      case "NotFilledYet":
+        return (
+          <>
+            <div>Устанавливаю UD профиль на {sideNoun.accusative}.</div>
+            <div>Уставлено {props.result.updatedState.uds.length} UD профилей на {sideNoun.adpositional}.</div>
+          </>
+        )
+      case "Filled":
+        return Option.reduce(
+          props.result.filled.fields,
+          restUd => {
+            return (
+              <>
+                <div>Отмеряю на последнем UD профиле {restUd.installedUd.length} длину, отрезаю и устанавливаю его. Остаток UD профиля длиной в {restUd.restUd.length} отбрасываю</div>
+                <div>Уставлено {props.result.updatedState.uds.length} UD профилей на {sideNoun.adpositional}.</div>
+              </>
+            )
+          },
+          () => {
+            return (
+              <>
+                <div>Устанавливаю последний UD профиль на {sideNoun.accusative}.</div>
+                <div>Уставлено {props.result.updatedState.uds.length} UD профилей на {sideNoun.adpositional}.</div>
+              </>
+            )
+          }
+        )
+    }
+  })()
+  return (
+    <>
+      {stepDescription}
+      <button onClick={() => {
+        props.setModel(props.next())
+      }}>
+        Продолжить
+      </button>
+    </>
+  )
+}
 
 function App() {
   const [model, setModel] = useState(Model.Model.start(initState))
@@ -32,135 +86,30 @@ function App() {
         )
       case Model.ModelType.AddUDProfileToFloor: {
         const [result, next] = model.fields
-        const stepDescription = (() => {
-          switch (result.filled.case) {
-            case "NotFilledYet":
-              return (
-                <>
-                  <div>Устанавливаю UD профиль на пол.</div>
-                  <div>Уставлено {result.updatedState.uds.length} UD профилей на полу.</div>
-                </>
-              )
-            case "Filled":
-              return Option.reduce(
-                result.filled.fields,
-                restUd => {
-                  return (
-                    <>
-                      <div>Отмеряю на последнем UD профиле {restUd.installedUd.length} длину, отрезаю и устанавливаю его. Остаток UD профиля длиной в {restUd.restUd.length} отбрасываю</div>
-                      <div>Уставлено {result.updatedState.uds.length} UD профилей на полу.</div>
-                    </>
-                  )
-                },
-                () => {
-                  return (
-                    <>
-                      <div>Устанавливаю последний UD профиль на пол.</div>
-                      <div>Уставлено {result.updatedState.uds.length} UD профилей на полу.</div>
-                    </>
-                  )
-                }
-              )
-          }
-        })()
-        return (
-          <>
-            {stepDescription}
-            <button onClick={() => {
-              setModel(next())
-            }}>
-              Продолжить
-            </button>
-          </>
-        )
+        return <RoomSideStep
+          side="floor"
+          result={result}
+          next={next}
+          setModel={setModel}
+        />
       }
       case Model.ModelType.AddUDProfileToLeftWall: {
         const [result, next] = model.fields
-        const stepDescription = (() => {
-          switch (result.filled.case) {
-            case "NotFilledYet":
-              return (
-                <>
-                  <div>Устанавливаю UD профиль на левую стену.</div>
-                  <div>Уставлено {result.updatedState.uds.length} UD профилей на левой стене.</div>
-                </>
-              )
-            case "Filled":
-              return Option.reduce(
-                result.filled.fields,
-                restUd => {
-                  return (
-                    <>
-                      <div>Отмеряю на последнем UD профиле {restUd.installedUd.length} длину, отрезаю и устанавливаю его. Остаток UD профиля длиной в {restUd.restUd.length} отбрасываю</div>
-                      <div>Уставлено {result.updatedState.uds.length} UD профилей на левой стене.</div>
-                    </>
-                  )
-                },
-                () => {
-                  return (
-                    <>
-                      <div>Устанавливаю последний UD профиль на левую стену.</div>
-                      <div>Уставлено {result.updatedState.uds.length} UD профилей на левой стене.</div>
-                    </>
-                  )
-                }
-              )
-          }
-        })()
-        return (
-          <>
-            {stepDescription}
-            <button onClick={() => {
-              setModel(next())
-            }}>
-              Продолжить
-            </button>
-          </>
-        )
+        return <RoomSideStep
+          side="leftWall"
+          result={result}
+          next={next}
+          setModel={setModel}
+        />
       }
       case Model.ModelType.AddUDProfileToCeiling: {
         const [result, next] = model.fields
-        const stepDescription = (() => {
-          switch (result.filled.case) {
-            case "NotFilledYet":
-              return (
-                <>
-                  <div>Устанавливаю UD профиль на потолок.</div>
-                  <div>Уставлено {result.updatedState.uds.length} UD профилей на потолке.</div>
-                </>
-              )
-            case "Filled":
-              return Option.reduce(
-                result.filled.fields,
-                restUd => {
-                  return (
-                    <>
-                      <div>Отмеряю на последнем UD профиле {restUd.installedUd.length} длину, отрезаю и устанавливаю его. Остаток UD профиля длиной в {restUd.restUd.length} отбрасываю</div>
-                      <div>Уставлено {result.updatedState.uds.length} UD профилей на потолке.</div>
-                    </>
-                  )
-                },
-                () => {
-                  return (
-                    <>
-                      <div>Устанавливаю последний UD профиль на потолок.</div>
-                      <div>Уставлено {result.updatedState.uds.length} UD профилей на потолке.</div>
-                    </>
-                  )
-                }
-              )
-          }
-        })()
-        return (
-          <>
-            {stepDescription}
-            <button onClick={() => {
-              setModel(next())
-            }}>
-              Продолжить
-            </button>
-          </>
-        )
+        return <RoomSideStep
+          side="ceiling"
+          result={result}
+          next={next}
+          setModel={setModel}
+        />
       }
       case Model.ModelType.End: {
         const state = model.fields

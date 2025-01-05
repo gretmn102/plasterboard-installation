@@ -21,6 +21,41 @@ export type Material =
   | UnionCase<MaterialType.CD, { length: number }>
   | UnionCase<MaterialType.Plasterboard, { width: number, height: number }>
 
+export type Noun = {
+  /** именительный: что? */
+  nominative: string
+  /** винительный: куда? */
+  accusative: string
+  /** предложный: где? */
+  adpositional: string
+}
+
+export type RoomSideName = "floor" | "leftWall" | "ceiling"
+export namespace RoomSideName {
+  export function toNoun(side: RoomSideName): Noun {
+    switch (side) {
+      case "ceiling":
+        return {
+          nominative: "потолок",
+          accusative: "потолок",
+          adpositional: "потолке",
+        }
+      case "floor":
+        return {
+          nominative: "пол",
+          accusative: "пол",
+          adpositional: "полу",
+        }
+      case "leftWall":
+        return {
+          nominative: "левая стена",
+          accusative: "левую стену",
+          adpositional: "левой стене",
+        }
+    }
+  }
+}
+
 export type RoomSide = {
   uds: UD[]
   length: number
@@ -195,7 +230,7 @@ export namespace Model {
 
   export function fillRoomSideByUds(
     state: State,
-    side: "floor" | "leftWall" | "ceiling",
+    side: RoomSideName,
     next: (state: State) => Model,
   ): Model {
     const result = RoomSide.addUDProfile(
