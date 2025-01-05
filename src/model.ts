@@ -102,6 +102,7 @@ export type State = {
     size: Size
     floor: RoomSide
     leftWall: RoomSide
+    ceiling: RoomSide
   }
   constantMaterials: ConstantMaterials
   usedMaterial: {
@@ -119,6 +120,7 @@ export namespace State {
         size: roomSize,
         floor: RoomSide.create(roomSize.width),
         leftWall: RoomSide.create(roomSize.height),
+        ceiling: RoomSide.create(roomSize.width),
       },
       constantMaterials,
       usedMaterial: {
@@ -132,6 +134,7 @@ export enum ModelType {
   "Start",
   "AddUDProfileToFloor",
   "AddUDProfileToLeftWall",
+  "AddUDProfileToCeiling",
   "End"
 }
 
@@ -139,6 +142,7 @@ export type Model =
   | UnionCase<ModelType.Start, () => Model>
   | UnionCase<ModelType.AddUDProfileToFloor, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.AddUDProfileToLeftWall, [RoomSide.AddUDProfileResult, () => Model]>
+  | UnionCase<ModelType.AddUDProfileToCeiling, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.End, State>
 
 export namespace Model {
@@ -172,13 +176,26 @@ export namespace Model {
     )
   }
 
+  export function createAddUDProfileToCeiling(
+    result: RoomSide.AddUDProfileResult,
+    next: () => Model
+  ): Model {
+    return UnionCase.mkUnionCase<
+      ModelType.AddUDProfileToCeiling,
+      [RoomSide.AddUDProfileResult, () => Model]
+    >(
+      ModelType.AddUDProfileToCeiling,
+      [result, next],
+    )
+  }
+
   export function createEnd(state: State): Model {
     return UnionCase.mkUnionCase(ModelType.End, state)
   }
 
   export function fillRoomSideByUds(
     state: State,
-    side: "floor" | "leftWall",
+    side: "floor" | "leftWall" | "ceiling",
     next: (state: State) => Model,
   ): Model {
     const result = RoomSide.addUDProfile(
@@ -195,7 +212,17 @@ export namespace Model {
         ud: { $apply: current => current + 1 }
       },
     })
-    return createAddUDProfileToFloor(
+    const createAddUDProfile = (() => {
+      switch (side) {
+        case "floor":
+          return createAddUDProfileToFloor
+        case "leftWall":
+          return createAddUDProfileToLeftWall
+        case "ceiling":
+          return createAddUDProfileToCeiling
+      }
+    })()
+    return createAddUDProfile(
       result,
       () => {
         switch (result.filled.case) {
@@ -213,7 +240,9 @@ export namespace Model {
   export function start(initState: State): Model {
     return createStart(() => (
       fillRoomSideByUds(initState, "floor", state => (
-        fillRoomSideByUds(state, "leftWall", createEnd)
+        fillRoomSideByUds(state, "leftWall", state => (
+          fillRoomSideByUds(state, "ceiling", createEnd)
+        ))
       ))
     ))
   }
@@ -222,11 +251,9 @@ export namespace Model {
     switch (model.case) {
       case ModelType.Start:
         return simulateToEnd(model.fields())
-      case ModelType.AddUDProfileToFloor: {
-        const [_, next] = model.fields
-        return simulateToEnd(next())
-      }
-      case ModelType.AddUDProfileToLeftWall: {
+      case ModelType.AddUDProfileToFloor:
+      case ModelType.AddUDProfileToLeftWall:
+      case ModelType.AddUDProfileToCeiling: {
         const [_, next] = model.fields
         return simulateToEnd(next())
       }

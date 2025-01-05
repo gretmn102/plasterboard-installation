@@ -106,6 +106,20 @@ describe("Model", () => {
               }
             ]
           },
+          ceiling: {
+            length: 700,
+            uds: [
+              {
+                length: 300
+              },
+              {
+                length: 300
+              },
+              {
+                length: 100
+              }
+            ]
+          },
           leftWall: {
             length: 600,
             uds: [
@@ -124,7 +138,7 @@ describe("Model", () => {
           }
         },
         usedMaterial: {
-          ud: 5
+          ud: 8
         }
       })
   })
