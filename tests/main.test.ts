@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { Option } from "@fering-org/functional-helper"
 
-import { RoomSide, UD } from "../src/model"
+import { Model, ModelType, RoomSide, State, UD } from "../src/model"
 
 describe("RoomSide", () => {
   it("add to uds", () => {
@@ -71,6 +71,60 @@ describe("RoomSide", () => {
         updatedState: {
           length: initRoomSide.length,
           uds: [ ud, installedUd ]
+        }
+      })
+  })
+})
+
+describe("Model", () => {
+  it("700x600, ud 300", () => {
+    const initState = State.create(
+      { width: 700, height: 600 },
+      {
+        ud: UD.create(300)
+      },
+    )
+    const initModel = Model.start(initState)
+    expect(Model.simulateToEnd(initModel))
+      .toStrictEqual<State>({
+        room: {
+          size: {
+            width: 700,
+            height: 600
+          },
+          floor: {
+            length: 700,
+            uds: [
+              {
+                length: 300
+              },
+              {
+                length: 300
+              },
+              {
+                length: 100
+              }
+            ]
+          },
+          leftWall: {
+            length: 600,
+            uds: [
+              {
+                length: 300
+              },
+              {
+                length: 300
+              }
+            ]
+          }
+        },
+        constantMaterials: {
+          ud: {
+            length: 300
+          }
+        },
+        usedMaterial: {
+          ud: 5
         }
       })
   })

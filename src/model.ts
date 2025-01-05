@@ -176,14 +176,18 @@ export namespace Model {
     return UnionCase.mkUnionCase(ModelType.End, state)
   }
 
-  export function fillFloorByUds(state: State): Model {
+  export function fillRoomSideByUds(
+    state: State,
+    side: "floor" | "leftWall",
+    next: (state: State) => Model,
+  ): Model {
     const result = RoomSide.addUDProfile(
-      state.room.floor,
+      state.room[side],
       state.constantMaterials.ud
     )
     const updatedState = update(state, {
       room: {
-        floor: {
+        [side]: {
           $set: result.updatedState
         }
       },
@@ -196,40 +200,10 @@ export namespace Model {
       () => {
         switch (result.filled.case) {
           case "NotFilledYet": {
-            return fillFloorByUds(updatedState)
+            return fillRoomSideByUds(updatedState, side, next)
           }
           case "Filled": {
-            return fillLeftWallByUds(updatedState)
-          }
-        }
-      }
-    )
-  }
-
-  export function fillLeftWallByUds(state: State): Model {
-    const result = RoomSide.addUDProfile(
-      state.room.leftWall,
-      state.constantMaterials.ud
-    )
-    const updatedState = update(state, {
-      room: {
-        leftWall: {
-          $set: result.updatedState
-        }
-      },
-      usedMaterial: {
-        ud: { $apply: current => current + 1 }
-      },
-    })
-    return createAddUDProfileToLeftWall(
-      result,
-      () => {
-        switch (result.filled.case) {
-          case "NotFilledYet": {
-            return fillLeftWallByUds(updatedState)
-          }
-          case "Filled": {
-            return createEnd(updatedState)
+            return next(updatedState)
           }
         }
       }
@@ -237,8 +211,29 @@ export namespace Model {
   }
 
   export function start(initState: State): Model {
-    return createStart(() => {
-      return fillFloorByUds(initState)
-    })
+    return createStart(() => (
+      fillRoomSideByUds(initState, "floor", state => (
+        fillRoomSideByUds(state, "leftWall", createEnd)
+      ))
+    ))
+  }
+
+  export function simulateToEnd(model: Model): State {
+    switch (model.case) {
+      case ModelType.Start:
+        return simulateToEnd(model.fields())
+      case ModelType.AddUDProfileToFloor: {
+        const [_, next] = model.fields
+        return simulateToEnd(next())
+      }
+      case ModelType.AddUDProfileToLeftWall: {
+        const [_, next] = model.fields
+        return simulateToEnd(next())
+      }
+      case ModelType.End: {
+        const state = model.fields
+        return state
+      }
+    }
   }
 }
