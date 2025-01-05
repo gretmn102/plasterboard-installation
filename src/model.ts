@@ -101,6 +101,7 @@ export type State = {
   room: {
     size: Size
     floor: Floor
+    leftWall: Floor
   }
   constantMaterials: ConstantMaterials
   usedMaterial: {
@@ -117,6 +118,7 @@ export namespace State {
       room: {
         size: roomSize,
         floor: Floor.create(roomSize.width),
+        leftWall: Floor.create(roomSize.height),
       },
       constantMaterials,
       usedMaterial: {
@@ -129,12 +131,14 @@ export namespace State {
 export enum ModelType {
   "Start",
   "AddUDProfileToFloor",
+  "AddUDProfileToLeftWall",
   "End"
 }
 
 export type Model =
   | UnionCase<ModelType.Start, () => Model>
   | UnionCase<ModelType.AddUDProfileToFloor, [Floor.AddUDProfileResult, () => Model]>
+  | UnionCase<ModelType.AddUDProfileToLeftWall, [Floor.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.End, State>
 
 export namespace Model {
@@ -151,6 +155,19 @@ export namespace Model {
       [Floor.AddUDProfileResult, () => Model]
     >(
       ModelType.AddUDProfileToFloor,
+      [result, next],
+    )
+  }
+
+  export function createAddUDProfileToLeftWall(
+    result: Floor.AddUDProfileResult,
+    next: () => Model
+  ): Model {
+    return UnionCase.mkUnionCase<
+      ModelType.AddUDProfileToLeftWall,
+      [Floor.AddUDProfileResult, () => Model]
+    >(
+      ModelType.AddUDProfileToLeftWall,
       [result, next],
     )
   }
@@ -182,16 +199,37 @@ export namespace Model {
             return fillFloorByUds(updatedState)
           }
           case "Filled": {
-            const filled = result.filled.fields
-            return Option.reduce(
-              filled,
-              restUd => {
-                return createEnd(updatedState)
-              },
-              () => {
-                return createEnd(updatedState)
-              },
-            )
+            return fillLeftWallByUds(updatedState)
+          }
+        }
+      }
+    )
+  }
+
+  export function fillLeftWallByUds(state: State): Model {
+    const result = Floor.addUDProfile(
+      state.room.leftWall,
+      state.constantMaterials.ud
+    )
+    const updatedState = update(state, {
+      room: {
+        leftWall: {
+          $set: result.updatedState
+        }
+      },
+      usedMaterial: {
+        ud: { $apply: current => current + 1 }
+      },
+    })
+    return createAddUDProfileToLeftWall(
+      result,
+      () => {
+        switch (result.filled.case) {
+          case "NotFilledYet": {
+            return fillLeftWallByUds(updatedState)
+          }
+          case "Filled": {
+            return createEnd(updatedState)
           }
         }
       }

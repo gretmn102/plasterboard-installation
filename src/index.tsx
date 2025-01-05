@@ -74,6 +74,50 @@ function App() {
           </>
         )
       }
+      case Model.ModelType.AddUDProfileToLeftWall: {
+        const [result, next] = model.fields
+        const stepDescription = (() => {
+          switch (result.filled.case) {
+            case "NotFilledYet":
+              return (
+                <>
+                  <div>Устанавливаю UD профиль на левую стену.</div>
+                  <div>Уставлено {result.updatedState.uds.length} UD профилей на левой стене.</div>
+                </>
+              )
+            case "Filled":
+              return Option.reduce(
+                result.filled.fields,
+                restUd => {
+                  return (
+                    <>
+                      <div>Отмеряю на последнем UD профиле {restUd.installedUd.length} длину, отрезаю и устанавливаю его. Остаток UD профиля длиной в {restUd.restUd.length} отбрасываю</div>
+                      <div>Уставлено {result.updatedState.uds.length} UD профилей на левой стене.</div>
+                    </>
+                  )
+                },
+                () => {
+                  return (
+                    <>
+                      <div>Устанавливаю последний UD профиль на левую стену.</div>
+                      <div>Уставлено {result.updatedState.uds.length} UD профилей на левой стене.</div>
+                    </>
+                  )
+                }
+              )
+          }
+        })()
+        return (
+          <>
+            {stepDescription}
+            <button onClick={() => {
+              setModel(next())
+            }}>
+              Продолжить
+            </button>
+          </>
+        )
+      }
       case Model.ModelType.End: {
         const state = model.fields
         return (
