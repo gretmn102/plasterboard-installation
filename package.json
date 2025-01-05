@@ -28,6 +28,7 @@
     "vitest": "^2.0.3"
   },
   "dependencies": {
+    "@fering-org/functional-helper": "^0.6.1",
     "immutability-helper": "^3.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
