@@ -6,56 +6,41 @@ import { Button } from "../components/button"
 import { RoomSide, RoomSideName } from "../model"
 import { Layer } from "../components/layer"
 
-function RoomSideStep(
-  props: {
-    side: RoomSideName,
-    result: RoomSide.AddUDProfileResult,
-    next: () => Model.Model,
-    setModel: (model: Model.Model) => void,
+function RoomSideStepDescription({ side, result }: {
+  side: RoomSideName,
+  result: RoomSide.AddUDProfileResult,
+}) {
+  const sideNoun = RoomSideName.toNoun(side)
+
+  switch (result.filled.case) {
+    case "NotFilledYet":
+      return (
+        <>
+          <div>Устанавливаю UD профиль на {sideNoun.accusative}.</div>
+          <div>Уставлено {result.updatedState.uds.length} UD профилей на {sideNoun.adpositional}.</div>
+        </>
+      )
+    case "Filled":
+      return Option.reduce(
+        result.filled.fields,
+        restUd => {
+          return (
+            <>
+              <div>Отмеряю на последнем UD профиле {restUd.installedUd.length} длину, отрезаю и устанавливаю его. Остаток UD профиля длиной в {restUd.restUd.length} отбрасываю</div>
+              <div>Уставлено {result.updatedState.uds.length} UD профилей на {sideNoun.adpositional}.</div>
+            </>
+          )
+        },
+        () => {
+          return (
+            <>
+              <div>Устанавливаю последний UD профиль на {sideNoun.accusative}.</div>
+              <div>Уставлено {result.updatedState.uds.length} UD профилей на {sideNoun.adpositional}.</div>
+            </>
+          )
+        }
+      )
   }
-) {
-  const sideNoun = RoomSideName.toNoun(props.side)
-  const stepDescription = (() => {
-    switch (props.result.filled.case) {
-      case "NotFilledYet":
-        return (
-          <>
-            <div>Устанавливаю UD профиль на {sideNoun.accusative}.</div>
-            <div>Уставлено {props.result.updatedState.uds.length} UD профилей на {sideNoun.adpositional}.</div>
-          </>
-        )
-      case "Filled":
-        return Option.reduce(
-          props.result.filled.fields,
-          restUd => {
-            return (
-              <>
-                <div>Отмеряю на последнем UD профиле {restUd.installedUd.length} длину, отрезаю и устанавливаю его. Остаток UD профиля длиной в {restUd.restUd.length} отбрасываю</div>
-                <div>Уставлено {props.result.updatedState.uds.length} UD профилей на {sideNoun.adpositional}.</div>
-              </>
-            )
-          },
-          () => {
-            return (
-              <>
-                <div>Устанавливаю последний UD профиль на {sideNoun.accusative}.</div>
-                <div>Уставлено {props.result.updatedState.uds.length} UD профилей на {sideNoun.adpositional}.</div>
-              </>
-            )
-          }
-        )
-    }
-  })()
-  return (
-    <>
-      {stepDescription}
-      <Button onClick={() => {
-        props.setModel(props.next())
-      }}>
-        Продолжить
-      </Button>
-    </>
-  )
 }
 
 export function Installation({ initState }: {
@@ -63,64 +48,104 @@ export function Installation({ initState }: {
 }) {
   const [model, setModel] = useState(Model.Model.start(initState))
 
-  const content = (() => {
+  const result = (() => {
     switch (model.case) {
       case Model.ModelType.Start:
-        return (
-          <>
+        return {
+          content: (
             <div>Начинаю укладывать на пол UD профиля.</div>
+          ),
+          footer: (
             <Button onClick={() => {
               const newModel = model.fields()
               setModel(newModel)
             }}>
               Приступить
             </Button>
-          </>
-        )
+          ),
+        }
       case Model.ModelType.AddUDProfileToFloor: {
         const [result, next] = model.fields
-        return <RoomSideStep
-          side="floor"
-          result={result}
-          next={next}
-          setModel={setModel}
-        />
+        return {
+          content: (
+            <RoomSideStepDescription
+              side="floor"
+              result={result}
+            />
+          ),
+          footer: (
+            <Button onClick={() => {
+              setModel(next())
+            }}>
+              Продолжить
+            </Button>
+          ),
+        }
       }
       case Model.ModelType.AddUDProfileToLeftWall: {
         const [result, next] = model.fields
-        return <RoomSideStep
-          side="leftWall"
-          result={result}
-          next={next}
-          setModel={setModel}
-        />
+        return {
+          content: (
+            <RoomSideStepDescription
+              side="leftWall"
+              result={result}
+            />
+          ),
+          footer: (
+            <Button onClick={() => {
+              setModel(next())
+            }}>
+              Продолжить
+            </Button>
+          ),
+        }
       }
       case Model.ModelType.AddUDProfileToCeiling: {
         const [result, next] = model.fields
-        return <RoomSideStep
-          side="ceiling"
-          result={result}
-          next={next}
-          setModel={setModel}
-        />
+        return {
+          content: (
+            <RoomSideStepDescription
+              side="ceiling"
+              result={result}
+            />
+          ),
+          footer: (
+            <Button onClick={() => {
+              setModel(next())
+            }}>
+              Продолжить
+            </Button>
+          ),
+        }
       }
       case Model.ModelType.AddUDProfileToRightWall: {
         const [result, next] = model.fields
-        return <RoomSideStep
-          side="rightWall"
-          result={result}
-          next={next}
-          setModel={setModel}
-        />
+        return {
+          content: (
+            <RoomSideStepDescription
+              side="rightWall"
+              result={result}
+            />
+          ),
+          footer: (
+            <Button onClick={() => {
+              setModel(next())
+            }}>
+              Продолжить
+            </Button>
+          ),
+        }
       }
       case Model.ModelType.End: {
         const state = model.fields
-        return (
-          <>
-            <pre>{JSON.stringify(state, undefined, 2)}</pre>
-            <div>Конец</div>
-          </>
-        )
+        return {
+          content: (
+            <>
+              <pre>{JSON.stringify(state, undefined, 2)}</pre>
+              <div>Конец</div>
+            </>
+          )
+        }
       }
     }
   })()
@@ -128,8 +153,9 @@ export function Installation({ initState }: {
   return (
     <Layer
       title="Установка"
+      footer={result.footer}
     >
-      {content}
+      {result.content}
     </Layer>
   )
 }
