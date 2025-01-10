@@ -12,7 +12,7 @@ export function Layer({ title, footer, children }: {
         <div>{children}</div>
       )}
       {footer && (
-        <div>{footer}</div>
+        <footer>{footer}</footer>
       )}
     </main>
   )
