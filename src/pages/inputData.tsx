@@ -1,4 +1,4 @@
-import React, { Children, useState } from "react" // leave it in, otherwise it throws an error
+import React, { useState } from "react" // leave it in, otherwise it throws an error
 
 import * as Model from "../model"
 import { Button } from "../components/button"
@@ -55,18 +55,18 @@ export function InputData({ submit }: {
         <Input
           id="wall-width"
           label="Ширина"
-          value={wallWidth}
-          onChange={e => {
-            setWallWidth(Number.parseInt(e.target.value))
+          initValue={wallWidth}
+          onChange={value => {
+            setWallWidth(value)
           }}
         />
         <Input
           id="wall-height"
           label="Высота"
-          onChange={e => {
-            setWallHeight(Number.parseInt(e.target.value))
+          onChange={value => {
+            setWallHeight(value)
           }}
-          value={wallHeight}
+          initValue={wallHeight}
         />
       </Section>
       <Section
@@ -75,9 +75,9 @@ export function InputData({ submit }: {
         <Input
           id="ud-length"
           label="Длина"
-          value={udLength}
-          onChange={e => {
-            setUdLength(Number.parseInt(e.target.value))
+          initValue={udLength}
+          onChange={value => {
+            setUdLength(value)
           }}
         />
       </Section>

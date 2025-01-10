@@ -1,5 +1,6 @@
 import React from "react" // leave it in, otherwise it throws an error
 
+import { concat } from "../utils"
 import * as Model from "../model"
 import { Button } from "../components/button"
 import { Layer } from "../components/layer"
@@ -23,7 +24,9 @@ export function RequiredMaterials({ requiredMaterials, onStartInstallation }: {
       }
     >
       <ol>
-        <li>{requiredMaterials.ud}шт UD профилей</li>
+        <li className={concat([
+          "text-2xl"
+        ])}>{requiredMaterials.ud}шт UD профилей</li>
       </ol>
     </Layer>
   )

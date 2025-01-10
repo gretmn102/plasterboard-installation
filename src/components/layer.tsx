@@ -6,13 +6,13 @@ export function Layer({ title, footer, children }: {
   children?: React.ReactNode
 }) {
   return (
-    <main>
-      <h1>{title}</h1>
+    <main className="flex flex-col flex-1 justify-between items-center px-2.5 py-24 w-full">
+      <h1 className="text-4xl text-center text-black">{title}</h1>
       {children && (
         <div>{children}</div>
       )}
       {footer && (
-        <div>{footer}</div>
+        <footer>{footer}</footer>
       )}
     </main>
   )

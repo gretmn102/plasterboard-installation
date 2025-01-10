@@ -6,6 +6,7 @@ export function Button({ onClick, children }: {
 }) {
   return (
     <button
+      className="self-center px-5 py-2.5 text-4xl text-white whitespace-nowrap rounded-xl bg-slate-500"
       onClick={() => {
         if (onClick) { onClick() }
       }}
