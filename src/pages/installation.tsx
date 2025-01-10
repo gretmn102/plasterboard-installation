@@ -2,8 +2,9 @@ import React, { useState } from "react" // leave it in, otherwise it throws an e
 import { Option } from "@fering-org/functional-helper"
 
 import * as Model from "../model"
-
+import { Button } from "../components/button"
 import { RoomSide, RoomSideName } from "../model"
+import { Layer } from "../components/layer"
 
 function RoomSideStep(
   props: {
@@ -48,11 +49,11 @@ function RoomSideStep(
   return (
     <>
       {stepDescription}
-      <button onClick={() => {
+      <Button onClick={() => {
         props.setModel(props.next())
       }}>
         Продолжить
-      </button>
+      </Button>
     </>
   )
 }
@@ -68,12 +69,12 @@ export function Installation({ initState }: {
         return (
           <>
             <div>Начинаю укладывать на пол UD профиля.</div>
-            <button onClick={() => {
+            <Button onClick={() => {
               const newModel = model.fields()
               setModel(newModel)
             }}>
               Приступить
-            </button>
+            </Button>
           </>
         )
       case Model.ModelType.AddUDProfileToFloor: {
@@ -125,9 +126,10 @@ export function Installation({ initState }: {
   })()
 
   return (
-    <div>
-      <h1>Установка</h1>
+    <Layer
+      title="Установка"
+    >
       {content}
-    </div>
+    </Layer>
   )
 }
