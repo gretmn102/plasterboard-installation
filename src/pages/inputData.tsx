@@ -1,6 +1,21 @@
-import React, { useState } from "react" // leave it in, otherwise it throws an error
+import React, { Children, useState } from "react" // leave it in, otherwise it throws an error
 
 import * as Model from "../model"
+import { Button } from "../components/button"
+import { Input } from "../components/input"
+import { Layer } from "../components/layer"
+
+function Section({ title, children }: {
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <section>
+      <h2>{title}</h2>
+      {children}
+    </section>
+  )
+}
 
 export function InputData({ submit }: {
   submit?: (initState: Model.State) => void
@@ -10,74 +25,62 @@ export function InputData({ submit }: {
   const [udLength, setUdLength] = useState(300)
 
   return (
-    <div>
-      <h1>Ввод данных</h1>
-      <div>
-        <h2>Стена</h2>
-        <div>
-          <label htmlFor="wall-width">Ширина</label>
-          <div>
-            <input
-              id="wall-width"
-              type={"number"}
-              onChange={e => {
-                setWallWidth(Number.parseInt(e.target.value))
-              }}
-              value={wallWidth}
-            />
-            <span>см</span>
-          </div>
-        </div>
-        <div>
-          <label htmlFor="wall-height">Высота</label>
-          <div>
-            <input
-              id="wall-height"
-              type={"number"}
-              onChange={e => {
-                setWallHeight(Number.parseInt(e.target.value))
-              }}
-              value={wallHeight}
-            />
-            <span>см</span>
-          </div>
-        </div>
-      </div>
-      <div>
-        <h2>UD профиль</h2>
-        <div>
-          <label htmlFor="ud-length">Длина</label>
-          <div>
-            <input
-              id="ud-length"
-              type={"number"}
-              onChange={e => {
-                setUdLength(Number.parseInt(e.target.value))
-              }}
-              value={udLength}
-            />
-            <span>см</span>
-          </div>
-        </div>
-      </div>
-      <button onClick={() => {
-        if (submit) {
-          submit(
-            Model.State.create(
-              {
-                width: wallWidth,
-                height: wallHeight,
-              },
-              {
-                ud: Model.UD.create(udLength)
-              },
-            )
-          )
-        }
+    <Layer
+      title="Ввод данных"
+      footer={
+        <Button
+          onClick={() => {
+            if (submit) {
+              submit(
+                Model.State.create(
+                  {
+                    width: wallWidth,
+                    height: wallHeight,
+                  },
+                  {
+                    ud: Model.UD.create(udLength)
+                  },
+                )
+              )
+            }
+          }
+        }>
+          Вычислить<br />материалы
+        </Button>
       }
-      }>
-        Вычислить<br />материалы
-      </button>
-    </div>
+    >
+      <Section
+        title="Стена"
+      >
+        <Input
+          id="wall-width"
+          label="Ширина"
+          value={wallWidth}
+          onChange={e => {
+            setWallWidth(Number.parseInt(e.target.value))
+          }}
+        />
+        <Input
+          id="wall-height"
+          label="Высота"
+          onChange={e => {
+            setWallHeight(Number.parseInt(e.target.value))
+          }}
+          value={wallHeight}
+        />
+      </Section>
+      <Section
+        title="UD профиль"
+      >
+        <Input
+          id="ud-length"
+          label="Длина"
+          value={udLength}
+          onChange={e => {
+            setUdLength(Number.parseInt(e.target.value))
+          }}
+        />
+      </Section>
+    </Layer>
   )
 }

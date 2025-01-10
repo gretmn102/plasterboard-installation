@@ -1,16 +1,23 @@
 import React from "react" // leave it in, otherwise it throws an error
 
+import { Button } from "../components/button"
+import { Layer } from "../components/layer"
+
 export function Home({ onStart }: {
   onStart?: () => void
 }) {
   return (
-    <div>
-      <h1>Пошаговая установка гипсокартона</h1>
-      <button onClick={() => {
-        if (onStart) { onStart() }
-      }}>
-        Приступить
-      </button>
-    </div>
+    <Layer
+      title="Пошаговая установка гипсокартона"
+      footer={
+        <Button
+          onClick={() => {
+            if (onStart) { onStart() }
+          }}
+        >
+          Приступить
+        </Button>
+      }
+    />
   )
 }
