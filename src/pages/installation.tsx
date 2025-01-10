@@ -43,119 +43,136 @@ function RoomSideStepDescription({ side, result }: {
   }
 }
 
+function InstallationContent({ model }: {
+  model: Model.Model,
+}) {
+  switch (model.case) {
+    case Model.ModelType.Start:
+      return (
+        <div>Начинаю укладывать на пол UD профиля.</div>
+      )
+    case Model.ModelType.AddUDProfileToFloor: {
+      const [result] = model.fields
+      return (
+        <RoomSideStepDescription
+          side="floor"
+          result={result} />
+      )
+    }
+    case Model.ModelType.AddUDProfileToLeftWall: {
+      const [result] = model.fields
+      return (
+        <RoomSideStepDescription
+          side="leftWall"
+          result={result} />
+      )
+    }
+    case Model.ModelType.AddUDProfileToCeiling: {
+      const [result] = model.fields
+      return (
+        <RoomSideStepDescription
+          side="ceiling"
+          result={result} />
+      )
+    }
+    case Model.ModelType.AddUDProfileToRightWall: {
+      const [result] = model.fields
+      return (
+        <RoomSideStepDescription
+          side="rightWall"
+          result={result} />
+      )
+    }
+    case Model.ModelType.End: {
+      const state = model.fields
+      return (
+        <>
+          <pre>{JSON.stringify(state, undefined, 2)}</pre>
+          <div>Конец</div>
+        </>
+      )
+    }
+  }
+}
+
+function InstallationAction({ model, setModel }: {
+  model: Model.Model
+  setModel: (updatedModel: Model.Model) => void
+}) {
+  switch (model.case) {
+    case Model.ModelType.Start:
+      return (
+        <Button onClick={() => {
+          const newModel = model.fields()
+          setModel(newModel)
+        } }>
+          Приступить
+        </Button>
+      )
+    case Model.ModelType.AddUDProfileToFloor: {
+      const [, next] = model.fields
+      return (
+        <Button onClick={() => {
+          setModel(next())
+        } }>
+          Продолжить
+        </Button>
+      )
+    }
+    case Model.ModelType.AddUDProfileToLeftWall: {
+      const [, next] = model.fields
+      return (
+        <Button onClick={() => {
+          setModel(next())
+        } }>
+          Продолжить
+        </Button>
+      )
+    }
+    case Model.ModelType.AddUDProfileToCeiling: {
+      const [, next] = model.fields
+      return (
+        <Button onClick={() => {
+          setModel(next())
+        } }>
+          Продолжить
+        </Button>
+      )
+    }
+    case Model.ModelType.AddUDProfileToRightWall: {
+      const [, next] = model.fields
+      return (
+        <Button onClick={() => {
+          setModel(next())
+        } }>
+          Продолжить
+        </Button>
+      )
+    }
+    case Model.ModelType.End: {
+      return null
+    }
+  }
+}
+
 export function Installation({ initState }: {
   initState: Model.State,
 }) {
   const [model, setModel] = useState(Model.Model.start(initState))
 
-  const result = (() => {
-    switch (model.case) {
-      case Model.ModelType.Start:
-        return {
-          content: (
-            <div>Начинаю укладывать на пол UD профиля.</div>
-          ),
-          footer: (
-            <Button onClick={() => {
-              const newModel = model.fields()
-              setModel(newModel)
-            }}>
-              Приступить
-            </Button>
-          ),
-        }
-      case Model.ModelType.AddUDProfileToFloor: {
-        const [result, next] = model.fields
-        return {
-          content: (
-            <RoomSideStepDescription
-              side="floor"
-              result={result}
-            />
-          ),
-          footer: (
-            <Button onClick={() => {
-              setModel(next())
-            }}>
-              Продолжить
-            </Button>
-          ),
-        }
-      }
-      case Model.ModelType.AddUDProfileToLeftWall: {
-        const [result, next] = model.fields
-        return {
-          content: (
-            <RoomSideStepDescription
-              side="leftWall"
-              result={result}
-            />
-          ),
-          footer: (
-            <Button onClick={() => {
-              setModel(next())
-            }}>
-              Продолжить
-            </Button>
-          ),
-        }
-      }
-      case Model.ModelType.AddUDProfileToCeiling: {
-        const [result, next] = model.fields
-        return {
-          content: (
-            <RoomSideStepDescription
-              side="ceiling"
-              result={result}
-            />
-          ),
-          footer: (
-            <Button onClick={() => {
-              setModel(next())
-            }}>
-              Продолжить
-            </Button>
-          ),
-        }
-      }
-      case Model.ModelType.AddUDProfileToRightWall: {
-        const [result, next] = model.fields
-        return {
-          content: (
-            <RoomSideStepDescription
-              side="rightWall"
-              result={result}
-            />
-          ),
-          footer: (
-            <Button onClick={() => {
-              setModel(next())
-            }}>
-              Продолжить
-            </Button>
-          ),
-        }
-      }
-      case Model.ModelType.End: {
-        const state = model.fields
-        return {
-          content: (
-            <>
-              <pre>{JSON.stringify(state, undefined, 2)}</pre>
-              <div>Конец</div>
-            </>
-          )
-        }
-      }
-    }
-  })()
-
   return (
     <Layer
       title="Установка"
-      footer={result.footer}
+      footer={
+        <InstallationAction
+          model={model}
+          setModel={updatedModel => void setModel(updatedModel)}
+        />
+      }
     >
-      {result.content}
+      <InstallationContent
+        model={model}
+      />
     </Layer>
   )
 }
