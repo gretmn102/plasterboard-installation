@@ -17,7 +17,9 @@ export function Input({ id, label, initValue, onChange }: {
       {label && (
         <label
           className={concat([
-            "gap-2.5 self-start pl-3 text-base"
+            "block",
+            "text-center",
+            "text-sm",
           ])}
           htmlFor={id}
         >
@@ -52,6 +54,7 @@ export function Input({ id, label, initValue, onChange }: {
           type="number"
           className={concat([
             "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+            "w-20",
             "focus:outline-none",
             "text-2xl",
             "font-light",

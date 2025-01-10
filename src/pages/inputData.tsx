@@ -4,6 +4,7 @@ import * as Model from "../model"
 import { Button } from "../components/button"
 import { Input } from "../components/input"
 import { Layer } from "../components/layer"
+import { concat } from "../utils"
 
 function Section({ title, children }: {
   title: string
@@ -11,8 +12,15 @@ function Section({ title, children }: {
 }) {
   return (
     <section>
-      <h2>{title}</h2>
-      {children}
+      <h2 className="text-center">{title}</h2>
+      <div className={concat([
+        "flex",
+        "flex-wrap",
+        "justify-center",
+        "space-x-1.5",
+      ])}>
+        {children}
+      </div>
     </section>
   )
 }
@@ -49,38 +57,46 @@ export function InputData({ submit }: {
         </Button>
       }
     >
-      <Section
-        title="Стена"
+      <div
+        className={concat([
+          "flex",
+          "flex-col",
+          "space-y-3",
+        ])}
       >
-        <Input
-          id="wall-width"
-          label="Ширина"
-          initValue={wallWidth}
-          onChange={value => {
-            setWallWidth(value)
-          }}
-        />
-        <Input
-          id="wall-height"
-          label="Высота"
-          onChange={value => {
-            setWallHeight(value)
-          }}
-          initValue={wallHeight}
-        />
-      </Section>
-      <Section
-        title="UD профиль"
-      >
-        <Input
-          id="ud-length"
-          label="Длина"
-          initValue={udLength}
-          onChange={value => {
-            setUdLength(value)
-          }}
-        />
-      </Section>
+        <Section
+          title="Стена"
+        >
+          <Input
+            id="wall-width"
+            label="Ширина"
+            initValue={wallWidth}
+            onChange={value => {
+              setWallWidth(value)
+            }}
+          />
+          <Input
+            id="wall-height"
+            label="Высота"
+            onChange={value => {
+              setWallHeight(value)
+            }}
+            initValue={wallHeight}
+          />
+        </Section>
+        <Section
+          title="UD профиль"
+        >
+          <Input
+            id="ud-length"
+            label="Длина"
+            initValue={udLength}
+            onChange={value => {
+              setUdLength(value)
+            }}
+          />
+        </Section>
+      </div>
     </Layer>
   )
 }
