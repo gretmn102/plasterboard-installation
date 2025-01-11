@@ -206,25 +206,24 @@ export namespace FrontWall {
   export function AddHorizontalCdProfile(wall: FrontWall, cd: CD, step: number): AddHorizontalCdProfileResult {
     const cds = wall.horizontalCds
 
-    const newPos = (() => {
+    const newPosY = (() => {
       if (cds.length === 0) {
         return step
       }
       const lastCd = cds[cds.length - 1]
-      const newPos = lastCd.pos + step
-      return newPos
+      return lastCd.pos + step
     })()
 
-    const wallWidth = wall.size.width
+    const wallHeight = wall.size.height
 
-    if (newPos > wallWidth) {
+    if (newPosY > wallHeight) {
       return UnionCase.mkEmptyUnionCase("DoesNotFit")
     } else {
       return UnionCase.mkUnionCase("Ok",
         update(wall, {
           horizontalCds: {
             $push: [{
-              pos: newPos,
+              pos: newPosY,
               cd: cd,
             }]
           }

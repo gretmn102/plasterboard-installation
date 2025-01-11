@@ -85,6 +85,8 @@ describe("Model", () => {
         cd: CD.create(0)
       },
     )
+    const verticalCdsCount = initState.room.size.width / stepBetweenCds | 0
+    const horizontalCdsCount = initState.room.size.height / stepBetweenCds | 0
     const initModel = Model.start(initState)
     expect(Model.simulateToEnd(initModel))
       .toStrictEqual<State>({
@@ -149,13 +151,22 @@ describe("Model", () => {
               height: 600
             },
             verticalCds: (() => {
-              const cds = new Array<FrontWall["verticalCds"][0]>(23)
+              const cds = new Array<FrontWall["verticalCds"][0]>(verticalCdsCount)
               for (let index = 0; index < cds.length; index++) {
                 cds[index] = {
                   pos: index * stepBetweenCds + stepBetweenCds,
                   cd: CD.create(0),
                 }
-
+              }
+              return cds
+            })(),
+            horizontalCds: (() => {
+              const cds = new Array<FrontWall["horizontalCds"][0]>(horizontalCdsCount)
+              for (let index = 0; index < cds.length; index++) {
+                cds[index] = {
+                  pos: index * stepBetweenCds + stepBetweenCds,
+                  cd: CD.create(0),
+                }
               }
               return cds
             })(),
@@ -169,7 +180,7 @@ describe("Model", () => {
         },
         usedMaterial: {
           ud: 10,
-          cd: 23,
+          cd: verticalCdsCount + horizontalCdsCount,
         }
       })
   })
