@@ -1,6 +1,8 @@
 import { Option, UnionCase, ArrayExt } from "@fering-org/functional-helper"
 import update from "immutability-helper"
 
+export const stepBetweenCds = 30
+
 export enum MaterialType {
   "UD",
   "CD",
@@ -16,9 +18,18 @@ export namespace UD {
   }
 }
 
+export type CD = { length: number }
+export namespace CD {
+  export function create(length: number): CD {
+    return {
+      length
+    }
+  }
+}
+
 export type Material =
   | UnionCase<MaterialType.UD, UD>
-  | UnionCase<MaterialType.CD, { length: number }>
+  | UnionCase<MaterialType.CD, CD>
   | UnionCase<MaterialType.Plasterboard, { width: number, height: number }>
 
 export type Noun = {
@@ -134,8 +145,59 @@ export namespace RoomSide {
 
 export type Size = { width: number; height: number }
 
+export type FrontWall = {
+  size: Size
+  verticalCds: {
+    pos: number
+    cd: CD
+  }[]
+}
+export namespace FrontWall {
+  export function create(size: Size): FrontWall {
+    return {
+      size,
+      verticalCds: [],
+    }
+  }
+
+  export type AddVerticalCdProfileResult =
+    | UnionCase<"DoesNotFit">
+    | UnionCase<"Ok", FrontWall>
+
+  export function AddVerticalCdProfile(wall: FrontWall, cd: CD, step: number): AddVerticalCdProfileResult {
+    const cds = wall.verticalCds
+
+    const newPos = (() => {
+      if (cds.length === 0) {
+        return step
+      }
+      const lastCd = cds[cds.length - 1]
+      const newPos = lastCd.pos + step
+      return newPos
+    })()
+
+    const wallWidth = wall.size.width
+
+    if (newPos > wallWidth) {
+      return UnionCase.mkEmptyUnionCase("DoesNotFit")
+    } else {
+      return UnionCase.mkUnionCase("Ok",
+        update(wall, {
+          verticalCds: {
+            $push: [{
+              pos: newPos,
+              cd: cd,
+            }]
+          }
+        })
+      )
+    }
+  }
+}
+
 export type ConstantMaterials = {
   ud: UD
+  cd: CD
 }
 
 export type State = {
@@ -145,10 +207,12 @@ export type State = {
     ceiling: RoomSide
     leftWall: RoomSide
     rightWall: RoomSide
+    frontWall: FrontWall
   }
   constantMaterials: ConstantMaterials
   usedMaterial: {
     ud: number
+    cd: number
   },
 }
 
@@ -164,10 +228,12 @@ export namespace State {
         ceiling: RoomSide.create(roomSize.width),
         leftWall: RoomSide.create(roomSize.height),
         rightWall: RoomSide.create(roomSize.height),
+        frontWall: FrontWall.create(roomSize),
       },
       constantMaterials,
       usedMaterial: {
-        ud: 0
+        ud: 0,
+        cd: 0,
       },
     }
   }
@@ -179,6 +245,7 @@ export enum ModelType {
   "AddUDProfileToCeiling",
   "AddUDProfileToLeftWall",
   "AddUDProfileToRightWall",
+  "AddVerticalCdProfile",
   "End"
 }
 
@@ -188,6 +255,7 @@ export type Model =
   | UnionCase<ModelType.AddUDProfileToLeftWall, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.AddUDProfileToRightWall, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.AddUDProfileToCeiling, [RoomSide.AddUDProfileResult, () => Model]>
+  | UnionCase<ModelType.AddVerticalCdProfile, [FrontWall, () => Model]>
   | UnionCase<ModelType.End, State>
 
 export namespace Model {
@@ -247,6 +315,19 @@ export namespace Model {
     )
   }
 
+  export function createAddVerticalCdProfile(
+    result: FrontWall,
+    next: () => Model
+  ): Model {
+    return UnionCase.mkUnionCase<
+      ModelType.AddVerticalCdProfile,
+      [FrontWall, () => Model]
+    >(
+      ModelType.AddVerticalCdProfile,
+      [result, next],
+    )
+  }
+
   export function createEnd(state: State): Model {
     return UnionCase.mkUnionCase(ModelType.End, state)
   }
@@ -297,12 +378,38 @@ export namespace Model {
     )
   }
 
+  export function fillFrontWallByVerticalCds(
+    state: State,
+    next: (state: State) => Model,
+  ): Model {
+    const cd = state.constantMaterials.cd
+    const result = FrontWall.AddVerticalCdProfile(state.room.frontWall, cd, stepBetweenCds)
+    switch (result.case) {
+      case "Ok":
+        const updatedState = update(state, {
+          room: {
+            frontWall: { $set: result.fields }
+          },
+          usedMaterial: {
+            cd: { $apply: count => count + 1 }
+          },
+        })
+        return createAddVerticalCdProfile(result.fields, () =>
+          fillFrontWallByVerticalCds(updatedState, next)
+        )
+      case "DoesNotFit":
+        return next(state)
+    }
+  }
+
   export function start(initState: State): Model {
     return createStart(() => (
       fillRoomSideByUds(initState, "floor", state => (
         fillRoomSideByUds(state, "leftWall", state => (
           fillRoomSideByUds(state, "ceiling", state => (
-            fillRoomSideByUds(state, "rightWall", createEnd)
+            fillRoomSideByUds(state, "rightWall", state => (
+              fillFrontWallByVerticalCds(state, createEnd)
+            ))
           ))
         ))
       ))
@@ -316,7 +423,8 @@ export namespace Model {
       case ModelType.AddUDProfileToFloor:
       case ModelType.AddUDProfileToCeiling:
       case ModelType.AddUDProfileToLeftWall:
-      case ModelType.AddUDProfileToRightWall: {
+      case ModelType.AddUDProfileToRightWall:
+      case ModelType.AddVerticalCdProfile: {
         const [_, next] = model.fields
         return simulateToEnd(next())
       }

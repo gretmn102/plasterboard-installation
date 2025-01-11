@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { Option } from "@fering-org/functional-helper"
 
-import { Model, ModelType, RoomSide, State, UD } from "../src/model"
+import { CD, FrontWall, Model, RoomSide, State, stepBetweenCds, UD } from "../src/model"
 
 describe("RoomSide", () => {
   it("add to uds", () => {
@@ -81,7 +81,8 @@ describe("Model", () => {
     const initState = State.create(
       { width: 700, height: 600 },
       {
-        ud: UD.create(300)
+        ud: UD.create(300),
+        cd: CD.create(0)
       },
     )
     const initModel = Model.start(initState)
@@ -141,15 +142,34 @@ describe("Model", () => {
                 length: 300
               }
             ]
+          },
+          frontWall: {
+            size: {
+              width: 700,
+              height: 600
+            },
+            verticalCds: (() => {
+              const cds = new Array<FrontWall["verticalCds"][0]>(23)
+              for (let index = 0; index < cds.length; index++) {
+                cds[index] = {
+                  pos: index * stepBetweenCds + stepBetweenCds,
+                  cd: CD.create(0),
+                }
+
+              }
+              return cds
+            })(),
           }
         },
         constantMaterials: {
           ud: {
             length: 300
-          }
+          },
+          cd: CD.create(0)
         },
         usedMaterial: {
-          ud: 10
+          ud: 10,
+          cd: 23,
         }
       })
   })
