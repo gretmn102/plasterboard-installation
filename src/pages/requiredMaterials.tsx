@@ -23,10 +23,11 @@ export function RequiredMaterials({ requiredMaterials, onStartInstallation }: {
         </Button>
       }
     >
-      <ol>
-        <li className={concat([
-          "text-2xl"
-        ])}>{requiredMaterials.ud}шт UD профилей</li>
+      <ol className={concat([
+        "text-2xl"
+      ])}>
+        <li>{requiredMaterials.ud}шт UD профилей</li>
+        <li>{requiredMaterials.cd}шт CD профилей</li>
       </ol>
     </Layer>
   )

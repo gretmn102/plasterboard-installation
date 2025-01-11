@@ -31,6 +31,7 @@ export function InputData({ submit }: {
   const [wallWidth, setWallWidth] = useState(700)
   const [wallHeight, setWallHeight] = useState(600)
   const [udLength, setUdLength] = useState(300)
+  const [cdLength, setCdLength] = useState(320)
 
   return (
     <Layer
@@ -46,7 +47,8 @@ export function InputData({ submit }: {
                     height: wallHeight,
                   },
                   {
-                    ud: Model.UD.create(udLength)
+                    ud: Model.UD.create(udLength),
+                    cd: Model.CD.create(cdLength),
                   },
                 )
               )
@@ -93,6 +95,18 @@ export function InputData({ submit }: {
             initValue={udLength}
             onChange={value => {
               setUdLength(value)
+            }}
+          />
+        </Section>
+        <Section
+          title="CD профиль"
+        >
+          <Input
+            id="cd-length"
+            label="Длина"
+            initValue={cdLength}
+            onChange={value => {
+              setCdLength(value)
             }}
           />
         </Section>
