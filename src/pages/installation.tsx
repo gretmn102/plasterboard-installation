@@ -85,7 +85,21 @@ function InstallationContent({ model }: {
     }
     case Model.ModelType.AddVerticalCdProfile: {
       const [result] = model.fields
-      return <div>Установить CD профиль на расстоянии {result.verticalCds[result.verticalCds.length - 1].pos}см от начала левой стенки.</div>
+      return <div>Установить CD профиль вертикально на расстоянии {result.verticalCds[result.verticalCds.length - 1].pos}см от начала левой стенки.</div>
+    }
+    case Model.ModelType.End: {
+      const state = model.fields
+      return (
+        <>
+          <pre>{JSON.stringify(state, undefined, 2)}</pre>
+          <div>Конец</div>
+        </>
+      )
+    }
+    case Model.ModelType.AddHorizontalCdProfile: {
+      const [result] = model.fields
+      const lastCdProfile = result.verticalCds[result.verticalCds.length - 1]
+      return <div>Установить CD профиль горизонтально на расстоянии {lastCdProfile.pos.x}см от начала левой стенки и {lastCdProfile.pos.y}см от потолка.</div>
     }
     case Model.ModelType.End: {
       const state = model.fields
@@ -154,6 +168,16 @@ function InstallationAction({ model, setModel }: {
       )
     }
     case Model.ModelType.AddVerticalCdProfile: {
+      const [, next] = model.fields
+      return (
+        <Button onClick={() => {
+          setModel(next())
+        } }>
+          Продолжить
+        </Button>
+      )
+    }
+    case Model.ModelType.AddHorizontalCdProfile: {
       const [, next] = model.fields
       return (
         <Button onClick={() => {

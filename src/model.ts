@@ -151,12 +151,17 @@ export type FrontWall = {
     pos: number
     cd: CD
   }[]
+  horizontalCds: {
+    pos: number
+    cd: CD
+  }[]
 }
 export namespace FrontWall {
   export function create(size: Size): FrontWall {
     return {
       size,
       verticalCds: [],
+      horizontalCds: [],
     }
   }
 
@@ -184,6 +189,40 @@ export namespace FrontWall {
       return UnionCase.mkUnionCase("Ok",
         update(wall, {
           verticalCds: {
+            $push: [{
+              pos: newPos,
+              cd: cd,
+            }]
+          }
+        })
+      )
+    }
+  }
+
+  export type AddHorizontalCdProfileResult =
+    | UnionCase<"DoesNotFit">
+    | UnionCase<"Ok", FrontWall>
+
+  export function AddHorizontalCdProfile(wall: FrontWall, cd: CD, step: number): AddHorizontalCdProfileResult {
+    const cds = wall.horizontalCds
+
+    const newPos = (() => {
+      if (cds.length === 0) {
+        return step
+      }
+      const lastCd = cds[cds.length - 1]
+      const newPos = lastCd.pos + step
+      return newPos
+    })()
+
+    const wallWidth = wall.size.width
+
+    if (newPos > wallWidth) {
+      return UnionCase.mkEmptyUnionCase("DoesNotFit")
+    } else {
+      return UnionCase.mkUnionCase("Ok",
+        update(wall, {
+          horizontalCds: {
             $push: [{
               pos: newPos,
               cd: cd,
@@ -246,6 +285,7 @@ export enum ModelType {
   "AddUDProfileToLeftWall",
   "AddUDProfileToRightWall",
   "AddVerticalCdProfile",
+  "AddHorizontalCdProfile",
   "End"
 }
 
@@ -256,6 +296,7 @@ export type Model =
   | UnionCase<ModelType.AddUDProfileToRightWall, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.AddUDProfileToCeiling, [RoomSide.AddUDProfileResult, () => Model]>
   | UnionCase<ModelType.AddVerticalCdProfile, [FrontWall, () => Model]>
+  | UnionCase<ModelType.AddHorizontalCdProfile, [FrontWall, () => Model]>
   | UnionCase<ModelType.End, State>
 
 export namespace Model {
@@ -324,6 +365,19 @@ export namespace Model {
       [FrontWall, () => Model]
     >(
       ModelType.AddVerticalCdProfile,
+      [result, next],
+    )
+  }
+
+  export function createAddHorizontalCdProfile(
+    result: FrontWall,
+    next: () => Model
+  ): Model {
+    return UnionCase.mkUnionCase<
+      ModelType.AddHorizontalCdProfile,
+      [FrontWall, () => Model]
+    >(
+      ModelType.AddHorizontalCdProfile,
       [result, next],
     )
   }
@@ -402,13 +456,39 @@ export namespace Model {
     }
   }
 
+  export function fillFrontWallByHorizontalCds(
+    state: State,
+    next: (state: State) => Model,
+  ): Model {
+    const cd = state.constantMaterials.cd
+    const result = FrontWall.AddHorizontalCdProfile(state.room.frontWall, cd, stepBetweenCds)
+    switch (result.case) {
+      case "Ok":
+        const updatedState = update(state, {
+          room: {
+            frontWall: { $set: result.fields }
+          },
+          usedMaterial: {
+            cd: { $apply: count => count + 1 }
+          },
+        })
+        return createAddHorizontalCdProfile(result.fields, () =>
+          fillFrontWallByHorizontalCds(updatedState, next)
+        )
+      case "DoesNotFit":
+        return next(state)
+    }
+  }
+
   export function start(initState: State): Model {
     return createStart(() => (
       fillRoomSideByUds(initState, "floor", state => (
         fillRoomSideByUds(state, "leftWall", state => (
           fillRoomSideByUds(state, "ceiling", state => (
             fillRoomSideByUds(state, "rightWall", state => (
-              fillFrontWallByVerticalCds(state, createEnd)
+              fillFrontWallByVerticalCds(state, state => (
+                fillFrontWallByHorizontalCds(state, createEnd)
+              ))
             ))
           ))
         ))
@@ -424,7 +504,8 @@ export namespace Model {
       case ModelType.AddUDProfileToCeiling:
       case ModelType.AddUDProfileToLeftWall:
       case ModelType.AddUDProfileToRightWall:
-      case ModelType.AddVerticalCdProfile: {
+      case ModelType.AddVerticalCdProfile:
+      case ModelType.AddHorizontalCdProfile: {
         const [_, next] = model.fields
         return simulateToEnd(next())
       }
